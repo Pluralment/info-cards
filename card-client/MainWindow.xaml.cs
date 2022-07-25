@@ -5,6 +5,7 @@ using card_client.ViewModels;
 using Microsoft.Win32;
 using Syncfusion.Windows.Tools.Controls;
 using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -37,9 +38,23 @@ namespace card_client
 
         private async Task InitViewModel()
         {
-            CardViewModel = await CardViewModel.CreateAsync(remoteServer);
+            try
+            {
+                var requestTimeoutTask = Task.Delay(5000);
 
-            CardView.DataContext = CardViewModel;
+                var cardViewModelCreationTask = CardViewModel.CreateAsync(remoteServer);
+
+                var completedTask = await Task.WhenAny(requestTimeoutTask, cardViewModelCreationTask);
+
+                if (completedTask == requestTimeoutTask)
+                    throw new HttpRequestException("Request to database took too long");
+
+                CardView.DataContext = cardViewModelCreationTask.Result;
+            }
+            catch (HttpRequestException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)

@@ -1,5 +1,4 @@
 ﻿using card_api.Extensions;
-using card_api.Interfaces;
 using card_api.Models;
 using Microsoft.Extensions.Configuration;
 using System;
